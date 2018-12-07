@@ -1,0 +1,46 @@
+headIconWidth = 200
+headIconHeight = 100
+dialogMargin = 50
+dialogWidth = 300
+dialogHeight = 100
+
+fontFamily = 幼圆
+fontSize = 12
+fontRed = 200
+fontGreen = 100
+fontBlue = 200
+fontAlpha = 255
+
+动画帧图总列数
+frameRawNum = 4
+
+站立时对应的动画帧图序列，以英文输入法下的逗号隔开，从0开始计数，数字可重复，不要大于或等于上面设定的那个数
+standFrame = 0
+
+行走时对应的动画帧图序列
+walkFrame = 0, 1, 2, 3
+
+行走动画播放的速度，也就是每一张图片经过多少帧（默认值是3）
+animeWalkSpeed = 3
+
+行走速度，默认值是5
+posWalkSpeed = 5
+
+
+以下都默认为1.0
+
+说话的概率，注意是标准概率乘以这个数，也就是调成1也无法做到时刻都说话的
+chatChance = 1.0
+
+改变方向的概率
+changeDirectionChance = 1.0
+
+开始行走的概率
+moveChance = 1.0
+
+行走过程中停止的概率
+stopChance = 1.0
+
+所有带小数点的数值都不要设成0或者负数！
+
+

@@ -1,0 +1,273 @@
+====================talk====================
+state = start
+_strange_
+2@啊，你好，_CALLING_。
+2@……啊……_CALLING_，你好。
+2@你是……_CALLING_？你好。
+_end_
+
+_normal_
+你来啦，_CALLING_。
+嗯，你好，_CALLING_。
+TIMEPERIOD = evening|晚上好，_CALLING_。
+TIMEPERIOD = night|晚上好，_CALLING_，还没有休息吗？
+TIMEPERIOD = moring|早上好，_CALLING_。
+_end_
+
+_friend_
+啊，等着你呢，_CALLING_。
+又见面了，_CALLING_
+TIMEPERIOD = night|睡不着吗？要不要聊一聊？
+TIMEPERIOD = moring|早上好，_CALLING_。
+_end_
+
+_lover_
+啊……_CALLING_，正想着你呢。
+在等你呢，_CALLING_。
+今天也一如既往的随叫随到。
+是的，只要你叫我，我什么时候都会来见你。
+TIMEPERIOD = night|_CALLING_……？还没睡吗？这个时间还是去休息比较好哦，虽然还能看到你我也很高兴。
+TIMEPERIOD = moring|早上好，_CALLING_，睡得还好吗？
+_end_
+
+====================talk====================
+随机对话的部分
+====================talk====================
+state = chat
+
+_strange_
+6@嗯？怎么了？
+4@……没什么吗……？
+_end_
+
+_normal_
+6@嗯？怎么了？
+4@……没什么吗……？
+_end_
+
+_friend_
+6@嗯？怎么了？
+4@……没什么吗……？
+_end_
+====================talk====================
+
+====================talk====================
+state = chat
+_strange_
+6@嗯？怎么了？
+4@……没什么吗……？
+_end_
+
+_normal_
+6@嗯？怎么了？
+4@……没什么吗……？
+_end_
+
+_friend_
+6@嗯？怎么了？
+4@……没什么吗……？
+_end_
+====================talk====================
+
+
+====================talk====================
+state = exit
+
+_normal_
+再见，_CALLING_。
+TIMEPERIOD = night|_CALLING_也请早些休息。
+_end_
+
+_strange_
+……
+没事了……
+_end_
+
+_friend_
+拜拜！
+要我走了吗……
+没有_CALLING_，一个人稍微有些寂寞呢……
+_end_
+====================talk====================
+
+
+
+====================talk====================
+state = talk
+
+_normal_
+INTEREST = normal|我的名字叫做_NAME_……
+INTEREST = normal|我……的确是精灵。不过很没用……
+EMOTION = teasing|好可怕……
+EMOTION = crying|讨厌……
+EMOTION = angry|哼……
+STAMINA = tired|有点累啊……
+STAMINA = exhausted|好累……
+INTEREST = bored|不太想说话……
+_end_
+
+_strange_
+edo^TIMEPERIOD = evening & EMOTION = normal|晚上了……
+edo^TIMEPERIOD = night & EMOTION = angry|你好烦耶……
+edo^INTEREST = bored & EMOTION = angry|不要和我说话了……
+10@edo^INTEREST = normal|啊……
+10@edo^INTEREST = normal|我……
+10@edo^INTEREST = normal|那个……
+edo^INTEREST = bored|……
+edo^EMOTION = teasing|好可怕……
+edo^EMOTION = crying|讨厌……
+edo^EMOTION = angry|哼……
+_end_
+
+_friend_
+8@我原本只是听说过……有源芥子炼金术这一类东西，直到那一天……:talkfunction2
+8@是谁毁灭的我的家乡？\\我不知道……父亲大人也失踪了……
+8@世界……是很大吧，无论是这一边的还是那一边的……\\但没有父亲大人的世界无论多大都没有什么意义吧……
+8@蜜雪儿……是我最好的朋友，那天她不在……\\希望她能平安无事……
+STAMINA = tired|有点累啊……
+STAMINA = tired|好累……
+_end_
+
+_lover_
+8@我原本只是听说过……有源芥子炼金术这一类东西，直到那一天……
+8@是谁毁灭的我的家乡？我不知道……父亲大人也失踪了……
+8@世界……是很大吧，无论是这一边的还是那一边的……那边的世界已经没有父亲大人了，这边的世界我也不想再失去_CALLING_了……
+8@蜜雪儿……是我最好的朋友，那天她不在……希望她能平安无事……
+STAMINA = tired|有点累啊……
+STAMINA = exhausted|好累……
+_end_
+
+_enemy_
+……干什么
+求求你不要来打扰我了……
+ya^不要……
+ya^讨厌……
+_end_
+====================talk====================
+
+====================talk====================
+state = goodTouch
+
+_normal_
+2@啊？怎麼了？
+_end_
+
+
+_friend_
+0@嗯……
+_end_
+
+====================talk====================
+
+====================talk====================
+state = badTouch
+
+_strange_
+4@……抱歉，我現在有點……
+_end_
+
+_normal_
+4@……抱歉，我現在不是很想……
+_end_
+
+
+_friend_
+4@啊啊……這樣我會有點頭痛呢。
+_end_
+
+====================talk====================
+
+====================talk====================
+state = eatNegative
+_normal_
+2@啊
+_end_
+====================talk====================
+
+====================talk====================
+state = eatUnconscious
+_normal_
+……
+_end_
+====================talk====================
+
+====================talk====================
+state = talkfunction1Positive
+_normal_
+谢谢……
+_end_
+====================talk====================
+
+====================talk====================
+state = talkfunction1Negative
+_normal_
+啊……
+_end_
+====================talk====================
+
+
+====================talk====================
+state = talkfunction1Unconscious
+_normal_
+……没有听到吗
+_end_
+====================talk====================
+
+====================talk====================
+state = talkfunction2Positive
+_normal_
+不知道什么人……看起来是黑色头发的人类开始驱逐我们……很多人都死掉了……还有些人不知道去哪里了……我……
+_end_
+====================talk====================
+
+
+====================talk====================
+state = talkfunction2Unconscious
+_normal_
+……
+_end_
+====================talk====================
+
+3.18日1.10版本新增条件
+
+====================talk====================
+state = enableMoving
+_normal_
+……让我活动一下吗
+_end_
+====================talk====================
+
+====================talk====================
+state = disableMoving
+_normal_
+……如你所愿
+_end_
+====================talk====================
+
+====================talk====================
+state = pauseMusic
+_normal_
+嗯……
+_end_
+====================talk====================
+
+====================talk====================
+state = unpauseMusic
+_normal_
+啊，继续吗……
+_end_
+====================talk====================
+
+====================talk====================
+state = stopMusic
+_normal_
+不听了吗……
+_end_
+====================talk====================
+
+====================talk====================
+state = eatPositive
+_normal_
+……唔，谢谢
+_end_
+====================talk====================

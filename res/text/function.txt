@@ -1,0 +1,19 @@
+====================func====================
+state = eatFunction
+positive = 给东西吃:eatPositive
+negative = 饿着:eatNegative
+unconscious = 不理会:eatUnconscious
+====================func====================
+
+====================func====================
+state = talkfunction1
+positive = 会:talkfunction1Positive
+negative = 不会:talkfunction1Negative
+unconscious = 不理会:talkfunction1Unconscious
+====================func====================
+
+====================func====================
+state = talkfunction2
+positive = 怎么了:talkfunction1Positive
+unconscious = 沉默:talkfunction1Unconscious
+====================func====================

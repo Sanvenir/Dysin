@@ -1,0 +1,7 @@
+TRAY_NAME = Michalle
+WELCOMING_TEXT = 你好！
+CLICK_TEXT = 啊啊！
+TRAY_TOOL_TIPS = 这是Michalle，一只很常见的会说话的喵而已
+SECONDCALLING = 你
+NAME = 黛熏
+TRAYNAME = 蜜雪儿
