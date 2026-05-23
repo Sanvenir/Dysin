@@ -1,19 +1,19 @@
-====================func====================
-state = eatFunction
-positive = ¸ø¶«Î÷³Ô:eatPositive
-negative = ¶ö×Å:eatNegative
-unconscious = ²»Àí»á:eatUnconscious
-====================func====================
-
-====================func====================
-state = talkfunction1
-positive = »á:talkfunction1Positive
-negative = ²»»á:talkfunction1Negative
-unconscious = ²»Àí»á:talkfunction1Unconscious
-====================func====================
-
-====================func====================
-state = talkfunction2
-positive = ÔõÃ´ÁË:talkfunction1Positive
-unconscious = ³ÁÄ¬:talkfunction1Unconscious
+====================func====================
+state = eatFunction
+positive = ç»™ä¸œè¥¿åƒ:eatPositive
+negative = é¥¿ç€:eatNegative
+unconscious = ä¸ç†ä¼š:eatUnconscious
+====================func====================
+
+====================func====================
+state = talkfunction1
+positive = ä¼š:talkfunction1Positive
+negative = ä¸ä¼š:talkfunction1Negative
+unconscious = ä¸ç†ä¼š:talkfunction1Unconscious
+====================func====================
+
+====================func====================
+state = talkfunction2
+positive = æ€ä¹ˆäº†:talkfunction1Positive
+unconscious = æ²‰é»˜:talkfunction1Unconscious
 ====================func====================

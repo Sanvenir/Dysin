@@ -1,0 +1,28 @@
+{
+    "app": {
+        "name": "Dysin",
+        "description": "桌面精灵"
+    },
+    "menu": {
+        "talk": "聊天",
+        "touch": "触摸",
+        "disableMoving": "不要走动",
+        "exit": "离开"
+    },
+    "music": {
+        "pause": "暂停播放",
+        "continue": "继续播放",
+        "stop": "停止播放"
+    },
+    "tray": {
+        "name": "Dysin",
+        "welcomingText": "欢迎使用 Dysin!",
+        "toolTip": "Dysin 桌面精灵",
+        "clickText": "点击唤醒精灵"
+    },
+    "dialog": {
+        "firstMeetTitle": "初次见面",
+        "firstMeetText": "请告诉我你的名字：",
+        "enterName": "输入名字..."
+    }
+}

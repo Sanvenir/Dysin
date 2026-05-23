@@ -1,0 +1,13 @@
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.eggs/
+dist/
+build/
+*.log
+.vscode/
+.idea/
+*.tmp
+memory/
+sav/sav.dat

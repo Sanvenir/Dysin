@@ -1,0 +1,28 @@
+{
+    "app": {
+        "name": "Dysin",
+        "description": "Desktop Spirit"
+    },
+    "menu": {
+        "talk": "Talk",
+        "touch": "Touch",
+        "disableMoving": "Don't Move",
+        "exit": "Exit"
+    },
+    "music": {
+        "pause": "Pause",
+        "continue": "Continue",
+        "stop": "Stop"
+    },
+    "tray": {
+        "name": "Dysin",
+        "welcomingText": "Welcome to Dysin!",
+        "toolTip": "Dysin Desktop Spirit",
+        "clickText": "Click to wake the spirit"
+    },
+    "dialog": {
+        "firstMeetTitle": "First Meeting",
+        "firstMeetText": "Please tell me your name:",
+        "enterName": "Enter name..."
+    }
+}

@@ -1,7 +1,7 @@
-TRAY_NAME = Michalle
-WELCOMING_TEXT = ÄãºÃ£¡
-CLICK_TEXT = °¡°¡£¡
-TRAY_TOOL_TIPS = ÕâÊÇMichalle£¬Ò»Ö»ºÜ³£¼ûµÄ»áËµ»°µÄß÷¶øÒÑ
-SECONDCALLING = Äã
-NAME = ÷ìÑ¬
-TRAYNAME = ÃÛÑ©¶ù
+TRAY_NAME = Michalle
+WELCOMING_TEXT = ä½ å¥½ï¼
+CLICK_TEXT = å•Šå•Šï¼
+TRAY_TOOL_TIPS = è¿™æ˜¯Michalleï¼Œä¸€åªå¾ˆå¸¸è§çš„ä¼šè¯´è¯çš„å–µè€Œå·²
+SECONDCALLING = ä½ 
+NAME = é»›ç†
+TRAYNAME = èœœé›ªå„¿

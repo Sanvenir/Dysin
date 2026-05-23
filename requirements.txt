@@ -1,0 +1,3 @@
+# Dysin - Python 3 + PySide6 Dependencies
+
+PySide6>=6.5.0
