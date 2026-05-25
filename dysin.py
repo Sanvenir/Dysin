@@ -1,12 +1,12 @@
 ﻿# -*- coding:utf-8 -*-
-import sys, os, random, time, threading, pickle
+import sys, os, random, time, threading, pickle, socket, json
 from pathlib import Path
 PROJECT_ROOT = Path(__file__).parent
 sys.path.insert(0, str(PROJECT_ROOT))
 import setting, fileRead, i18n
-from PySide6.QtCore import QPoint, QRect, QRectF, Qt, QTimer
-from PySide6.QtGui import QFont, QColor, QAction, QIcon, QPainter, QPixmap, QActionGroup, QGuiApplication
-from PySide6.QtWidgets import (QLabel, QMenu, QWidget, QDialog, QSystemTrayIcon, QTextEdit, QDialogButtonBox, QVBoxLayout, QHBoxLayout, QApplication)
+from PySide6.QtCore import QPoint, QRect, QRectF, Qt, QTimer, QThread, Signal
+from PySide6.QtGui import QFont, QColor, QAction, QIcon, QPainter, QPixmap, QActionGroup, QGuiApplication, QTextDocument
+from PySide6.QtWidgets import (QLabel, QMenu, QWidget, QDialog, QSystemTrayIcon, QTextEdit, QDialogButtonBox, QVBoxLayout, QHBoxLayout, QApplication, QScrollArea)
 from PySide6.QtGui import QActionGroup
 from PySide6.QtMultimedia import QAudioOutput, QMediaPlayer
 
@@ -15,6 +15,65 @@ IMAGE_DIR = RES_DIR / 'image'
 SOUND_DIR = RES_DIR / 'sound'
 TEXT_DIR = RES_DIR / 'text'
 SAV_DIR = PROJECT_ROOT / 'sav'
+
+class MessageServer(QThread):
+    """TCP/UDP 消息服务器，接受外部消息并显示到对话框"""
+    messageReceived = Signal(str)  # 信号：收到消息时触发
+
+    def __init__(self, port=7654):
+        super().__init__()
+        self.port = port
+        self.running = False
+        self.tcp_socket = None
+        self.udp_socket = None
+
+    def run(self):
+        self.running = True
+        # TCP 服务器
+        self.tcp_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.tcp_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        self.tcp_socket.bind(('127.0.0.1', self.port))
+        self.tcp_socket.listen(5)
+        self.tcp_socket.settimeout(1.0)  # 允许超时退出
+
+        # UDP 服务器
+        self.udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.udp_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        self.udp_socket.bind(('127.0.0.1', self.port))
+        self.udp_socket.settimeout(1.0)
+
+        while self.running:
+            # TCP 接受
+            try:
+                client, addr = self.tcp_socket.accept()
+                data = client.recv(4096).decode('utf-8', errors='ignore')
+                client.close()
+                if data and self.messageReceived:
+                    self.messageReceived.emit(data.strip())
+            except socket.timeout:
+                pass
+            except Exception:
+                pass
+
+            # UDP 接收
+            try:
+                data, addr = self.udp_socket.recvfrom(4096)
+                message = data.decode('utf-8', errors='ignore').strip()
+                if message and self.messageReceived:
+                    self.messageReceived.emit(message)
+            except socket.timeout:
+                pass
+            except Exception:
+                pass
+
+    def stop(self):
+        self.running = False
+        if self.tcp_socket:
+            try: self.tcp_socket.close()
+            except: pass
+        if self.udp_socket:
+            try: self.udp_socket.close()
+            except: pass
 
 class SoundPlaying(threading.Thread):
     def __init__(self):
@@ -427,29 +486,162 @@ class Spirit(QLabel):
             if self.pos().y() < 0: self.nextDirection = 0
         self.character.dialog.update()
 class Dialog(QWidget):
+    """对话框：显示角色头像+文字（支持HTML/Markdown、自适应高度、桌面范围内）"""
     def __init__(self, character, parent=None):
         super().__init__(parent)
         self.setWindowFlags(Qt.Window | Qt.Tool | Qt.FramelessWindowHint)
         self.setAttribute(Qt.WA_TranslucentBackground, True)
-        self.setWindowOpacity(1.0); self.screen = QGuiApplication.primaryScreen().geometry(); self.character = character
-        self.iconWidth = self.character.spirit.headIconWidth; self.iconHeight = self.character.spirit.headIconHeight
-        self.margin = self.character.spirit.dialogMargin; self.textWidth = self.character.spirit.dialogWidth
-        self.textHeight = self.character.spirit.dialogHeight
-        self.resize(self.textWidth, self.iconHeight + self.textHeight)
+        self.setWindowOpacity(1.0)
+        self.screen = QGuiApplication.primaryScreen().geometry()
+        self.character = character
+
+        # 基础尺寸（文本区默认最大高度设为屏幕40%）
+        self.margin = self.character.spirit.dialogMargin
+        self.iconWidth = self.character.spirit.headIconWidth
+        self.iconHeight = self.character.spirit.headIconHeight
+        self.minTextWidth = self.character.spirit.dialogWidth
+        self.maxTextHeight = int(self.screen.height() * 0.4)
+        self.baseTextHeight = self.character.spirit.dialogHeight
+
         self.Image = {'normal': 0, 'happy': 2, 'cheerful': 4, 'teasing': 6, 'sad': 8, 'surprised': 10, 'crying': 12, 'angry': 14}
-        self.direction = 0; self.directionPos = 0; self.face = 'normal'; self.alpha = 0; self.timeCount = 0
-        self.standFlag = False; self.fadeOutTimeOut = 0; self.speakTimeOut = 0; self.hideFlag = False
-        self.setWindowOpacity(self.alpha); self.currentLyric = 0; self.playingMusic = False; self.lyric = 0; self.fadeFlag = True
+        self.direction = 0
+        self.directionPos = 0
+        self.face = 'normal'
+        self.alpha = 0
+        self.timeCount = 0
+        self.standFlag = False
+        self.fadeOutTimeOut = 0
+        self.speakTimeOut = 0
+        self.hideFlag = False
+        self.setWindowOpacity(self.alpha)
+        self.currentLyric = 0
+        self.playingMusic = False
+        self.lyric = 0
+        self.fadeFlag = True
+
+        # 文字显示用 QTextEdit（只读，支持HTML）
+        self.textEdit = QTextEdit(self)
+        self.textEdit.setReadOnly(True)
+        self.textEdit.setTextInteractionFlags(Qt.NoTextInteraction)
+        self.textEdit.setFocusPolicy(Qt.NoFocus)
+        self.textEdit.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.textEdit.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+        # 文字边距：上下左右各15px
+        self.textPadding = 15
+        self.textEdit.setStyleSheet(
+            f"QTextEdit {{ background: transparent; border: none; padding: {self.textPadding}px; margin: 0; }}"
+        )
+        self.textEdit.document().setDocumentMargin(self.textPadding)
+
+        # 设置字体（比配置字体大2px）
+        dialogFont = QFont(self.character.spirit.fontFamily, self.character.spirit.fontSize + 2)
+        self.textEdit.setFont(dialogFont)
+
+        # 初始窗口大小：icon + 文本区
+        self.resize(self.minTextWidth, self.iconHeight + self.baseTextHeight)
         self.show()
 
     def changeFace(self, face):
-        if face in self.Image.keys(): self.face = face
-    def breakSpeak(self): self.funcBreakSpeak(); setting.ActionSetting(self.character.mood, 'break')
-    def funcBreakSpeak(self): self.speakTimeOut = self.timeCount; self.fadeOutTimeOut = self.timeCount
-    def speak(self, name, fadeOutTime=0): self.character.language.setNextMessage(name, fadeOutTime)
+        if face in self.Image.keys():
+            self.face = face
+
+    def breakSpeak(self):
+        self.funcBreakSpeak()
+        setting.ActionSetting(self.character.mood, 'break')
+
+    def funcBreakSpeak(self):
+        self.speakTimeOut = self.timeCount
+        self.fadeOutTimeOut = self.timeCount
+
+    def speak(self, name, fadeOutTime=0):
+        self.character.language.setNextMessage(name, fadeOutTime)
+
     def chat(self):
-        if self.character.language.showState() != 'chat': self.speak('chat')
-    def posUpdate(self): self.moveTo(self.character.spirit.centerPos())
+        if self.character.language.showState() != 'chat':
+            self.speak('chat')
+
+    def posUpdate(self):
+        self.moveTo(self.character.spirit.centerPos())
+
+    def setExternalMessage(self, message, fadeOutTime=300):
+        """显示外部消息（来自网络服务器）支持 HTML/Markdown"""
+        # 预处理：把 Markdown 转为 HTML
+        html = self._renderContent(message)
+        self.textEdit.setHtml(html)
+        self._adjustSize()
+
+        # 中断当前说话，强行显示外部消息
+        self.funcBreakSpeak()
+        self.speakTimeOut = self.timeCount + fadeOutTime
+        self.fadeOutTimeOut = self.timeCount + fadeOutTime + 60
+        self.fadeIn()
+
+    def _renderContent(self, text):
+        """简单 Markdown→HTML 转换"""
+        if not text:
+            return ""
+        # 转义 HTML 特殊字符（不在 pre/code 块内时）
+        lines = text.split('\n')
+        result = []
+        inCodeBlock = False
+        for line in lines:
+            stripped = line.strip()
+            if stripped.startswith('```'):
+                inCodeBlock = not inCodeBlock
+                result.append('')
+                continue
+            if inCodeBlock:
+                result.append(f'<pre>{self._escapeHtml(line)}</pre>')
+                continue
+            # 标题
+            if stripped.startswith('### '):
+                result.append(f'<h3>{self._escapeHtml(stripped[4:])}</h3>')
+            elif stripped.startswith('## '):
+                result.append(f'<h2>{self._escapeHtml(stripped[3:])}</h2>')
+            elif stripped.startswith('# '):
+                result.append(f'<h1>{self._escapeHtml(stripped[2:])}</h1>')
+            # 列表
+            elif stripped.startswith('- ') or stripped.startswith('* '):
+                result.append(f'<li>{self._inlineRender(stripped[2:])}</li>')
+            # 分割线
+            elif stripped == '---' or stripped == '***':
+                result.append('<hr>')
+            else:
+                result.append(f'<p>{self._inlineRender(line)}</p>')
+        return '<br>'.join(result)
+
+    def _escapeHtml(self, text):
+        return (text.replace('&', '&amp;')
+                .replace('<', '&lt;')
+                .replace('>', '&gt;'))
+
+    def _inlineRender(self, text):
+        """行内渲染：加粗、斜体、代码、行内Markdown"""
+        result = self._escapeHtml(text)
+        # 行内代码 `code`
+        import re
+        result = re.sub(r'`([^`]+)`', r'<code>\1</code>', result)
+        # 加粗 **bold**
+        result = re.sub(r'\*\*(.+?)\*\*', r'<b>\1</b>', result)
+        # 斜体 *italic*
+        result = re.sub(r'\*(.+?)\*', r'<i>\1</i>', result)
+        # 删除线 ~~del~~
+        result = re.sub(r'~~(.+?)~~', r'<s>\1</s>', result)
+        # 链接 [text](url)
+        result = re.sub(r'\[([^\]]+)\]\(([^)]+)\)', r'<a href="\2">\1</a>', result)
+        return result
+
+    def _adjustSize(self):
+        """根据文本内容自适应窗口高度，保持在屏幕范围内"""
+        doc = self.textEdit.document()
+        # 文本内容宽度 = 窗口宽度 - 左右padding - 对话框边框
+        contentWidth = self.minTextWidth - 2 * self.textPadding - 10
+        doc.setTextWidth(contentWidth)
+        textHeight = int(doc.size().height()) + 2 * self.textPadding
+        textHeight = max(50, min(textHeight, self.maxTextHeight))
+        self.textEdit.setFixedHeight(textHeight)
+        totalHeight = self.iconHeight + textHeight
+        self.resize(self.minTextWidth, totalHeight)
 
     def talkUpdate(self):
         self.repaint()
@@ -459,74 +651,137 @@ class Dialog(QWidget):
                 self.funcBreakSpeak()
                 self.character.language.setNextText(self.lyric[self.currentLyric][1], 0)
                 self.currentLyric += 1
-                if self.currentLyric == len(self.lyric): self.lyric = 0
-        else: self.playingMusic = False
-        if self.character.language.showState() in ('chat', 'talk'): self.standFlag = True
-        else: self.standFlag = False
-        if self.timeCount > self.fadeOutTimeOut: self.fadeOut()
-        if self.timeCount > self.speakTimeOut: self.hideFlag = False
+                if self.currentLyric == len(self.lyric):
+                    self.lyric = 0
+        else:
+            self.playingMusic = False
+        if self.character.language.showState() in ('chat', 'talk'):
+            self.standFlag = True
+        else:
+            self.standFlag = False
+        if self.timeCount > self.fadeOutTimeOut:
+            self.fadeOut()
+        if self.timeCount > self.speakTimeOut:
+            self.hideFlag = False
         if self.alpha < 0.05 and not self.hideFlag:
             self.character.language.swap()
             if self.character.language.currentMessage[0]:
+                msg = self.character.language.showMessage()
+                html = self._renderContent(msg)
+                self.textEdit.setHtml(html)
+                self._adjustSize()
                 self.speakTimeOut = self.timeCount + self.character.language.showSpeakTime()
                 self.fadeOutTimeOut = self.timeCount + self.character.language.showFadeOutTime()
                 self.fadeIn()
 
     def update(self):
-        self.changeFace(self.character.mood.showFace()); self.timeCount += 1
-        self.setWindowOpacity(self.alpha); self.talkUpdate(); self.posUpdate()
-        if self.hideFlag: self.fadeOut()
-        if self.fadeFlag: self.alpha = min(1.0, self.alpha + 0.06)
-        else: self.alpha = max(0.0, self.alpha - 0.06)
+        self.changeFace(self.character.mood.showFace())
+        self.timeCount += 1
+        self.setWindowOpacity(self.alpha)
+        self.talkUpdate()
+        self.posUpdate()
+        if self.hideFlag:
+            self.fadeOut()
+        if self.fadeFlag:
+            self.alpha = min(1.0, self.alpha + 0.06)
+        else:
+            self.alpha = max(0.0, self.alpha - 0.06)
 
-    def fadeIn(self): self.fadeFlag = True
-    def fadeOut(self): self.fadeFlag = False
+    def fadeIn(self):
+        self.fadeFlag = True
+
+    def fadeOut(self):
+        self.fadeFlag = False
 
     def paintEvent(self, paintEvent):
         painter = QPainter(self)
-        if self.character.language.showFace(): iconName = self.character.language.showFace()
-        else: iconName = str(IMAGE_DIR / f'{self.Image[self.face] + self.direction}.png')
+        # 头像
+        if self.character.language.showFace():
+            iconName = self.character.language.showFace()
+        else:
+            iconName = str(IMAGE_DIR / f'{self.Image[self.face] + self.direction}.png')
         iconPixmap = QPixmap(iconName)
         if not iconPixmap.isNull():
             scaledIcon = iconPixmap.scaledToWidth(self.iconWidth, Qt.SmoothTransformation)
             painter.drawPixmap(0, 0, scaledIcon.copy(0, 0, self.iconWidth, self.iconHeight))
-        rect = QRect(0, self.iconHeight, self.textWidth, self.textHeight)
+        # 对话框背景
+        textY = self.iconHeight
+        textH = self.textEdit.height()
+        rect = QRect(0, textY, self.width(), textH)
         dialogPixmap = QPixmap(str(IMAGE_DIR / 'dialog.png'))
-        if not dialogPixmap.isNull(): painter.drawPixmap(rect, dialogPixmap.scaled(rect.size()))
-        textRect = QRectF(rect.left() + 20, rect.top() + 20, self.textWidth - 40, 90)
-        font = QFont(self.character.spirit.fontFamily, self.character.spirit.fontSize)
-        painter.setFont(font); painter.setPen(self.character.spirit.fontColor)
-        painter.drawText(textRect, self.character.language.showMessage())
+        if not dialogPixmap.isNull():
+            painter.drawPixmap(rect, dialogPixmap.scaled(rect.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation))
+        # QTextEdit 覆盖在文本区上
+        self.textEdit.move(0, textY)
 
     def checkDirection(self):
-        if self.centerPos().x() < (self.screen.width() // 2) and not self.direction: self.direction = 1
-        elif self.centerPos().x() > (self.screen.width() // 2) and self.direction: self.direction = 0
-    def centerPos(self): return self.pos() + QPoint(self.iconWidth // 2, self.iconHeight // 2)
+        if self.centerPos().x() < (self.screen.width() // 2) and not self.direction:
+            self.direction = 1
+        elif self.centerPos().x() > (self.screen.width() // 2) and self.direction:
+            self.direction = 0
+
+    def centerPos(self):
+        return self.pos() + QPoint(self.iconWidth // 2, self.iconHeight // 2)
 
     def moveTo(self, pos):
-        if (pos.x() + self.margin + self.iconWidth + self.textWidth) > self.screen.width(): self.directionPos = 0
-        elif (pos.x() - self.margin - self.iconWidth - self.textWidth) < 0: self.directionPos = 1
-        y = max(20, min(self.screen.height() - self.textHeight - self.iconHeight - 20, pos.y() - self.character.spirit.height // 2 - self.iconHeight // 2))
-        x = pos.x() + self.margin if self.directionPos else pos.x() - self.margin - self.textWidth
-        self.move(x, y); self.checkDirection()
+        # pos 是精灵头顶中间的位置 (centerPos)
+        spiritX = pos.x()  # 精灵中心的x
+        spiritY = pos.y()  # 精灵中心的y
+        spiritH = self.character.spirit.height
+
+        # 对话框总尺寸
+        totalWidth = self.iconWidth + self.textEdit.width()
+        totalHeight = self.iconHeight + self.textEdit.height()
+
+        # 目标：对话框顶部与精灵顶部对齐（头顶贴着头顶）
+        # 精灵的顶部 = spiritY - spiritH//2
+        spiritTop = spiritY - spiritH // 2
+
+        # 水平：精灵居中于水平位置
+        preferredX = spiritX - totalWidth // 2
+        if preferredX + totalWidth > self.screen.width() - 20:
+            preferredX = self.screen.width() - totalWidth - 20
+        if preferredX < 20:
+            preferredX = 20
+
+        # 优先：对话框顶部对齐精灵顶部，水平居中
+        preferredY = spiritTop - totalHeight - self.margin
+
+        # 如果上方放不下（超出屏幕顶部），改放精灵下方，顶部对齐精灵顶部
+        if preferredY < 20:
+            preferredY = spiritTop + self.margin
+
+        # 确保不超出屏幕底部
+        if preferredY + totalHeight > self.screen.height() - 20:
+            preferredY = self.screen.height() - totalHeight - 20
+
+        self.move(preferredX, preferredY)
+        self.checkDirection()
 
     def mousePressEvent(self, event):
         self.character.activate()
         if event.button() == Qt.RightButton:
-            if self.character.language.currentMenu: self.character.language.currentMenu.posShow(event.globalPos())
-        else: self.hideFlag = True
+            if self.character.language.currentMenu:
+                self.character.language.currentMenu.posShow(event.globalPos())
+        else:
+            self.hideFlag = True
 
     def dropEvent(self, event):
         name = event.mimeData().urls()[0].path()
-        if name.startswith('/'): name = name[1:]
+        if name.startswith('/'):
+            name = name[1:]
         lrcName = name[:-3] + 'lrc'
         self.lyric = fileRead.lyricRead(lrcName)
-        if self.lyric: self.currentLyric = 0
-        if self.character.musicThread and self.character.musicThread.operation: self.character.musicThread.swapMusic(name)
-        else: self.character.musicThread = MusicPlaying(name)
+        if self.lyric:
+            self.currentLyric = 0
+        if self.character.musicThread and self.character.musicThread.operation:
+            self.character.musicThread.swapMusic(name)
+        else:
+            self.character.musicThread = MusicPlaying(name)
 
     def dragEnterEvent(self, event):
-        if event.mimeData().urls()[0].path().split('.')[-1].upper() in ('MP3', 'WAV'): event.accept()
+        if event.mimeData().urls()[0].path().split('.')[-1].upper() in ('MP3', 'WAV'):
+            event.accept()
 
 class SystemTrayIcon(QSystemTrayIcon):
     def __init__(self, character, parent=None):
@@ -570,6 +825,20 @@ class Character:
         self.language = Language(self); self.mood = Mood()
         self.soundThread = SoundPlaying(); self.musicThread = None
         self.mainApplication = mainApplication; self.activate()
+
+        # 启动消息服务器（TCP+UDP）
+        if getattr(setting, 'MESSAGE_SERVER_ENABLED', True):
+            port = getattr(setting, 'MESSAGE_SERVER_PORT', 7654)
+            self.msgServer = MessageServer(port)
+            self.msgServer.messageReceived.connect(self.onExternalMessage)
+            self.msgServer.start()
+        else:
+            self.msgServer = None
+
+    def onExternalMessage(self, message):
+        """收到外部消息，在主线程中显示到对话框"""
+        if message and self.dialog:
+            self.dialog.setExternalMessage(message)
 
     def activate(self):
         self.spirit.activateWindow(); self.spirit.raise_()
@@ -662,7 +931,9 @@ class DebugWindow(QDialog):
 
 class MainApplication:
     def __init__(self):
-        self.app = QApplication([])
+        self.app = QApplication.instance()
+        if self.app is None:
+            self.app = QApplication([])
         self.app.setQuitOnLastWindowClosed(False)
         self.timer = QTimer()
         self.timer.start(16)

@@ -37,6 +37,10 @@ relationTree = {
     "enemy": "strange"
 }
 
+# 消息服务器配置
+MESSAGE_SERVER_ENABLED = True
+MESSAGE_SERVER_PORT = 7654
+
 # 资源路径配置
 RES_PATH = os.path.join(os.path.dirname(__file__), "res")
 IMAGE_PATH = os.path.join(RES_PATH, "image")
