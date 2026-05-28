@@ -1,0 +1,11 @@
+# 角色定义
+
+character:
+  name: 黛熏
+  calling: 你
+  second_calling: 你
+  tray_name: 蜜雪儿
+
+  welcome_text: 你好！
+  click_text: 啊啊！
+  tray_tooltip: 这是Michalle，一只很常见的会说话的喵而已

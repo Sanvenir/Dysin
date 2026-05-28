@@ -1,0 +1,322 @@
+# 对话内容
+# 格式说明：
+#   text: 台词
+#   weight: 权重（默认1，数字越大选中概率越高）
+#   icon: 立绘文件名（不含扩展名）
+#   sound: 音效文件名（不含扩展名）
+#   when: 触发条件（可选，多个条件需同时满足）
+#         变量包括：TIMEPERIOD(morning/forenoon/noon/afternoon/evening/night)
+#                  EMOTION(normal/happy/teasing/angry/crying/sad/surprised/cheerful)
+#                  STAMINA(normal/tired/exhausted)
+#                  INTEREST(normal/bored)
+#   goto: 跳转到另一状态
+
+states:
+  # ============================================================
+  # 招呼
+  # ============================================================
+  start:
+    strange:
+      - {text: "啊，你好，{{CALLING}}。", weight: 2}
+      - {text: "……啊……{{CALLING}}，你好。", weight: 2}
+      - {text: "你是……{{CALLING}}？你好。", weight: 2}
+    normal:
+      - {text: "你来啦，{{CALLING}}。"}
+      - {text: "嗯，你好，{{CALLING}}。"}
+      - {text: "今天过得怎么样？", goto: ask_reply}
+      - {text: "{{CALLING}}，晚上好。", when: {TIMEPERIOD: evening}}
+      - {text: "{{CALLING}}，晚上好，还没有休息吗？", when: {TIMEPERIOD: night}}
+      - {text: "{{CALLING}}，早上好。", when: {TIMEPERIOD: morning}}
+    friend:
+      - {text: "啊，等着你呢，{{CALLING}}。"}
+      - {text: "又见面了，{{CALLING}}"}
+      - {text: "今天有什么事想和我说吗？", goto: ask_reply}
+      - {text: "睡不着吗？要不要聊一聊？", when: {TIMEPERIOD: night}}
+      - {text: "早上好，{{CALLING}}。", when: {TIMEPERIOD: morning}}
+      - {text: "下午总是让人犯困呢……"}
+    lover:
+      - {text: "啊……{{CALLING}}，正想着你呢。"}
+      - {text: "在等你呢，{{CALLING}}。"}
+      - {text: "今天也一如既往的随叫随到。"}
+      - {text: "是的，只要你叫我，我什么时候都会来见你。"}
+      - {text: "{{CALLING}}……今天过得开心吗？", goto: ask_reply}
+      - {text: "你终于来了……等了好久呢"}
+      - {text: "{{CALLING}}……？还没睡吗？这个时间还是去休息比较好哦，虽然还能看到你我也很高兴。", when: {TIMEPERIOD: night}}
+      - {text: "早上好，{{CALLING}}，睡得还好吗？", when: {TIMEPERIOD: morning}}
+
+  # ============================================================
+  # 随机对话
+  # ============================================================
+  chat:
+    strange:
+      - {text: "嗯？怎么了？", weight: 6}
+      - {text: "……没什么吗……？", weight: 4}
+      - {text: "啊……你说", weight: 6}
+      - {text: "我在听", weight: 4}
+      - {text: "有什么事吗？", weight: 6}
+      - {text: "……嗯？", weight: 4}
+      - {text: "……你来找我……是有什么事吗？", goto: ask_reply}
+      - {text: "那个……我可以问你一个问题吗？", goto: ask_yesno}
+      - {text: "这里……是什么地方？"}
+      - {text: "你……也是一个人吗？"}
+    normal:
+      - {text: "嗯？怎么了？", weight: 6}
+      - {text: "……没什么吗……？", weight: 4}
+      - {text: "啊……你说", weight: 6}
+      - {text: "我在听", weight: 4}
+      - {text: "有什么事吗？", weight: 6, goto: ask_reply}
+      - {text: "……嗯？", weight: 4}
+      - {text: "嗯……然后呢？", weight: 6, goto: ask_reply}
+      - {text: "这样啊……", weight: 4}
+      - {text: "……可以和我说说话吗？", goto: ask_reply}
+      - {text: "你有在听吗……？", goto: ask_reply}
+      - {text: "一个人待久了……偶尔也想有人说说话呢"}
+      - {text: "风……有点凉"}
+      - {text: "傍晚了呢……", when: {TIMEPERIOD: evening}}
+      - {text: "夜深了……", when: {TIMEPERIOD: night}}
+      - {text: "早上的空气不错呢……", when: {TIMEPERIOD: morning}}
+      - {text: "有什么好玩的吗？", when: {EMOTION: teasing}}
+      - {text: "……什么事？", when: {EMOTION: angry}}
+    friend:
+      - {text: "嗯？怎么了？", weight: 6}
+      - {text: "……没什么吗……？", weight: 4}
+      - {text: "啊……你说", weight: 6}
+      - {text: "我在听", weight: 4}
+      - {text: "有什么事吗？", weight: 6, goto: ask_reply}
+      - {text: "……嗯？", weight: 4}
+      - {text: "嗯……然后呢？", weight: 6, goto: ask_reply}
+      - {text: "这样啊……", weight: 4}
+      - {text: "真的吗？", weight: 6}
+      - {text: "诶……好厉害", weight: 4}
+      - {text: "原来如此", weight: 6}
+      - {text: "今天遇到什么有趣的事了吗？", goto: ask_reply}
+      - {text: "{{CALLING}}，能和我说说外面的事吗？", goto: ask_reply}
+      - {text: "你觉得……这个世界会变好吗？", goto: ask_yesno}
+      - {text: "有时候会想……如果什么都没发生就好了"}
+      - {text: "傍晚了呢……今天过得怎么样？", when: {TIMEPERIOD: evening}}
+      - {text: "夜深了呢……还不休息吗？", when: {TIMEPERIOD: night}}
+      - {text: "早上好！今天有什么计划？", when: {TIMEPERIOD: morning}}
+      - {text: "嘿嘿，在想什么呢~", when: {EMOTION: teasing}}
+      - {text: "你看起来有点心事……", when: {EMOTION: crying}}
+      - {text: "有点困了呢……", when: {STAMINA: tired}}
+      - {text: "哈啊……好累……", when: {STAMINA: exhausted}}
+    lover:
+      - {text: "嗯？怎么了，{{CALLING}}？", weight: 6}
+      - {text: "……在想什么呢？", weight: 4}
+      - {text: "啊……你说", weight: 6}
+      - {text: "我在听哦", weight: 4}
+      - {text: "有什么事吗？", weight: 6}
+      - {text: "……嗯？", weight: 4}
+      - {text: "嗯……然后呢？", weight: 6}
+      - {text: "这样啊……", weight: 4}
+      - {text: "真的吗？", weight: 6}
+      - {text: "诶……好厉害", weight: 4}
+      - {text: "原来如此……", weight: 6}
+      - {text: "嗯嗯，我懂", weight: 4}
+      - {text: "这样啊……原来是这样", weight: 6}
+      - {text: "{{CALLING}}，你今天看起来有心事……愿意和我说说吗？", goto: ask_reply}
+      - {text: "只要你在……我就觉得很安心"}
+      - {text: "可以……和我说说话吗？", goto: ask_reply}
+      - {text: "和你在一起的时光……总觉得过得好快"}
+      - {text: "傍晚了呢……想一起走走吗？", when: {TIMEPERIOD: evening}}
+      - {text: "夜深了呢……{{CALLING}}还不睡吗？", when: {TIMEPERIOD: night}}
+      - {text: "早上好！今天也一如既往地想见到你呢……", when: {TIMEPERIOD: morning}}
+      - {text: "嘿嘿，在想什么呢~", when: {EMOTION: teasing}}
+      - {text: "有什么有趣的事吗？", when: {EMOTION: teasing}}
+      - {text: "你看起来有点心事……怎么了？", when: {EMOTION: crying}}
+      - {text: "啊……好高兴", when: {EMOTION: happy}}
+      - {text: "有点困了呢……", when: {STAMINA: tired}}
+      - {text: "哈啊……好累……", when: {STAMINA: exhausted}}
+      - {text: "说起来……", when: {INTEREST: interested}}
+      - {text: "咦……{{CALLING}}，你有什么心事吗？", goto: ask_reply}
+      - {text: "……嗯", when: {INTEREST: bored}}
+    enemy:
+      - {text: "……"}
+      - {text: "干什么"}
+      - {text: "不要来烦我"}
+      - {text: "……有事吗"}
+      - {text: "……离我远点"}
+      - {text: "说了不要来烦我了……"}
+      - {text: "……为什么不放过我"}
+
+  # ============================================================
+  # 离开
+  # ============================================================
+  exit:
+    normal:
+      - {text: "再见，{{CALLING}}。"}
+      - {text: "{{CALLING}}也请早些休息。", when: {TIMEPERIOD: night}}
+    strange:
+      - {text: "……"}
+      - {text: "没事了……"}
+    friend:
+      - {text: "拜拜！"}
+      - {text: "要我走了吗……"}
+      - {text: "没有{{CALLING}}，一个人稍微有些寂寞呢……"}
+
+  # ============================================================
+  # 主动说话
+  # ============================================================
+  talk:
+    normal:
+      - {text: "我的名字叫做{{NAME}}……", when: {INTEREST: normal}}
+      - {text: "我……的确是精灵。不过很没用……", when: {INTEREST: normal}}
+      - {text: "你……愿意和我做朋友吗？", when: {INTEREST: normal}, goto: ask_yesno}
+      - {text: "我有时候会想……如果我不是精灵的话，会不会不一样……"}
+      - {text: "你知道炼金术吗？父亲大人曾经是最厉害的炼金术师……"}
+      - {text: "好可怕……", when: {EMOTION: teasing}}
+      - {text: "讨厌……", when: {EMOTION: crying}}
+      - {text: "哼……", when: {EMOTION: angry}}
+      - {text: "有点累啊……", when: {STAMINA: tired}}
+      - {text: "好累……", when: {STAMINA: exhausted}}
+      - {text: "不太想说话……", when: {INTEREST: bored}}
+    strange:
+      - {text: "晚上了……", weight: 1, icon: edo, when: {TIMEPERIOD: evening, EMOTION: normal}}
+      - {text: "你好烦耶……", weight: 1, icon: edo, when: {TIMEPERIOD: night, EMOTION: angry}}
+      - {text: "不要和我说话了……", weight: 1, icon: edo, when: {INTEREST: bored, EMOTION: angry}}
+      - {text: "啊……", weight: 10, icon: edo, when: {INTEREST: normal}}
+      - {text: "我……", weight: 10, icon: edo, when: {INTEREST: normal}}
+      - {text: "那个……", weight: 10, icon: edo, when: {INTEREST: normal}}
+      - {text: "……", weight: 1, icon: edo, when: {INTEREST: bored}}
+      - {text: "好可怕……", icon: edo, when: {EMOTION: teasing}}
+      - {text: "讨厌……", icon: edo, when: {EMOTION: crying}}
+      - {text: "哼……", icon: edo, when: {EMOTION: angry}}
+    friend:
+      - text: "我原本只是听说过……有源芥子炼金术这一类东西，直到那一天……"
+        goto: talkfunction2
+      - text: "是谁毁灭的我的家乡？\\我不知道……父亲大人也失踪了……"
+        icon: edo
+      - text: "世界……是很大吧，无论是这一边的还是那一边的……\\但没有父亲大人的世界无论多大都没有什么意义吧……"
+        icon: edo
+      - text: "蜜雪儿……是我最好的朋友，那天她不在……\\希望她能平安无事……"
+        icon: edo
+      - {text: "父亲大人教过我很多东西……你想听吗？", goto: ask_yesno}
+      - {text: "蜜雪儿她……最喜欢吃蜂蜜蛋糕了"}
+      - {text: "有点累啊……", when: {STAMINA: tired}}
+      - {text: "好累……", when: {STAMINA: tired}}
+    lover:
+      - text: "我原本只是听说过……有源芥子炼金术这一类东西，直到那一天……"
+      - text: "是谁毁灭的我的家乡？我不知道……父亲大人也失踪了……"
+      - text: "世界……是很大吧，无论是这一边的还是那一边的……那边的世界已经没有父亲大人了，这边的世界我也不想再失去{{CALLING}}了……"
+      - text: "蜜雪儿……是我最好的朋友，那天她不在……希望她能平安无事……"
+      - {text: "你知道吗……有源芥子是……算了，还是不说了"}
+      - {text: "有时候一个人待着……就会想起以前的事"}
+      - {text: "有点累啊……", when: {STAMINA: tired}}
+      - {text: "好累……", when: {STAMINA: exhausted}}
+    enemy:
+      - {text: "……干什么"}
+      - {text: "求求你不要来打扰我了……"}
+      - {text: "不要……", icon: ya}
+      - {text: "讨厌……", icon: ya}
+
+  # ============================================================
+  # 触摸反应
+  # ============================================================
+  goodTouch:
+    normal:
+      - {text: "啊？怎么了？", weight: 2}
+    friend:
+      - {text: "嗯……", weight: 0}
+
+  badTouch:
+    strange:
+      - {text: "……抱歉，我现在有点……", weight: 4}
+    normal:
+      - {text: "……抱歉，我现在不是很想……", weight: 4}
+    friend:
+      - {text: "啊啊……这样我会有点头痛呢。", weight: 4}
+
+  # ============================================================
+  # 喂食反应
+  # ============================================================
+  eatPositive:
+    normal:
+      - {text: "……唔，谢谢"}
+  eatNegative:
+    normal:
+      - {text: "啊", weight: 2}
+  eatUnconscious:
+    normal:
+      - {text: "……"}
+
+  # ============================================================
+  # talkfunction1 反应（询问是否会说话）
+  # ============================================================
+  talkfunction1Positive:
+    normal:
+      - {text: "谢谢……"}
+  talkfunction1Negative:
+    normal:
+      - {text: "啊……"}
+  talkfunction1Unconscious:
+    normal:
+      - {text: "……没有听到吗"}
+
+  # ============================================================
+  # talkfunction2 反应（讲述身世）
+  # ============================================================
+  talkfunction2Positive:
+    normal:
+      - text: "不知道什么人……看起来是黑色头发的人类开始驱逐我们……很多人都死掉了……还有些人不知道去哪里了……我……"
+  talkfunction2Unconscious:
+    normal:
+      - {text: "……"}
+
+  # ============================================================
+  # 移动控制
+  # ============================================================
+  enableMoving:
+    normal:
+      - {text: "……让我活动一下吗"}
+  disableMoving:
+    normal:
+      - {text: "……如你所愿"}
+
+  # ============================================================
+  # 问句回应（由 goto 触发）
+  # ============================================================
+  ask_yesno_yes:
+    normal:
+      - {text: "嗯……这样啊"}
+      - {text: "是吗……"}
+      - {text: "原来如此"}
+      - {text: "嗯……那太好了"}
+    friend:
+      - {text: "嘿嘿，那就好"}
+      - {text: "嗯嗯，我明白了"}
+      - {text: "太好了……我很高兴"}
+  ask_yesno_no:
+    normal:
+      - {text: "诶……不是吗"}
+      - {text: "哦……"}
+      - {text: "这样啊……"}
+      - {text: "……嗯"}
+  ask_reply_ok:
+    normal:
+      - {text: "嗯……"}
+      - {text: "这样啊"}
+      - {text: "……谢谢你"}
+      - {text: "嗯嗯"}
+    friend:
+      - {text: "谢谢你告诉我"}
+      - {text: "嗯，我明白了"}
+      - {text: "谢谢你愿意告诉我这些"}
+  ask_reply_silent:
+    normal:
+      - {text: "……"}
+      - {text: "不想说吗……"}
+      - {text: "……看来不太想说呢"}
+      - {text: "没关系……不想说的话就不用说"}
+
+  # ============================================================
+  # 音乐控制
+  # ============================================================
+  pauseMusic:
+    normal:
+      - {text: "嗯……"}
+  unpauseMusic:
+    normal:
+      - {text: "啊，继续吗……"}
+  stopMusic:
+    normal:
+      - {text: "不听了吗……"}

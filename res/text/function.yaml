@@ -1,0 +1,50 @@
+# 反应配置：状态 -> 反应类型 -> 目标状态
+
+states:
+  eatFunction:
+    positive:
+      label: 给东西吃
+      next: eatPositive
+    negative:
+      label: 饿着
+      next: eatNegative
+    unconscious:
+      label: 不理会
+      next: eatUnconscious
+
+  talkfunction1:
+    positive:
+      label: 会
+      next: talkfunction1Positive
+    negative:
+      label: 不会
+      next: talkfunction1Negative
+    unconscious:
+      label: 不理会
+      next: talkfunction1Unconscious
+
+  talkfunction2:
+    positive:
+      label: 怎么了
+      next: talkfunction1Positive
+    unconscious:
+      label: 沉默
+      next: talkfunction1Unconscious
+
+  # 通用二选一
+  ask_yesno:
+    positive:
+      label: 是的
+      next: ask_yesno_yes
+    negative:
+      label: 不是
+      next: ask_yesno_no
+
+  # 通用回应
+  ask_reply:
+    positive:
+      label: 回应
+      next: ask_reply_ok
+    unconscious:
+      label: 沉默
+      next: ask_reply_silent

@@ -1,17 +1,17 @@
 # -*- coding:utf-8 -*-
 """设置、情绪系统和动作配置模块"""
-
 import time
 import random
 import math
 import os
-
-# 全局文本配置
-text_calling = "……"
+from pathlib import Path
+PROJECT_ROOT = Path(__file__).parent.parent.parent
+TEXT_DIR = PROJECT_ROOT / 'res' / 'text'
+# 全局文本配置（由 YAML 加载后填充）
+text_calling = ""
 text_name = ""
 text_trayName = ""
 text_secondCalling = ""
-
 # 变量配置
 variable = {
     "TIMEPERIOD": "morning",
@@ -20,13 +20,10 @@ variable = {
     "STAMINA": "normal",
     "INTEREST": "normal"
 }
-
 # 关系列表
 relationList = ["normal", "strange", "friend", "lover", "slave", "enemy"]
-
 # 反应列表
 reactionList = ["positive", "negative", "joking"]
-
 # 关系树
 relationTree = {
     "normal": "normal",
@@ -36,22 +33,35 @@ relationTree = {
     "slave": "normal",
     "enemy": "strange"
 }
-
 # 消息服务器配置
 MESSAGE_SERVER_ENABLED = True
 MESSAGE_SERVER_PORT = 7654
-
 # 资源路径配置
 RES_PATH = os.path.join(os.path.dirname(__file__), "res")
 IMAGE_PATH = os.path.join(RES_PATH, "image")
 SOUND_PATH = os.path.join(RES_PATH, "sound")
 TEXT_PATH = os.path.join(RES_PATH, "text")
-
-
+def _load_yaml():
+    """延迟加载 YAML 配置，填充全局变量"""
+    try:
+        import yaml
+        from pathlib import Path
+        td = PROJECT_ROOT / 'res' / 'text'
+        with open(td / 'define.yaml', 'r', encoding='utf-8') as f:
+            define = yaml.safe_load(f)
+        ch = define.get('character', {})
+        global text_calling, text_name, text_trayName, text_secondCalling
+        text_calling = ch.get('calling', '')
+        text_name = ch.get('name', '')
+        text_trayName = ch.get('tray_name', '')
+        text_secondCalling = ch.get('second_calling', '')
+    except Exception:
+        pass
+# 启动时加载
+_load_yaml()
 def settingVariable(mood):
     """根据时间和心情状态更新变量"""
     hour = int(time.strftime("%H"))
-    
     if hour <= 5:
         variable["TIMEPERIOD"] = "night"
     elif hour <= 8:
@@ -64,28 +74,21 @@ def settingVariable(mood):
         variable["TIMEPERIOD"] = "afternoon"
     else:
         variable["TIMEPERIOD"] = "evening"
-    
     variable["RELATION"] = mood.relation
     variable["EMOTION"] = mood.emotion
-    
     if mood.tired > 100:
         variable["STAMINA"] = "exhausted"
     elif mood.tired > 50:
         variable["STAMINA"] = "tired"
     else:
         variable["STAMINA"] = "normal"
-    
     if mood.interest > 0:
         variable["INTEREST"] = "normal"
     else:
         variable["INTEREST"] = "bored"
-
-
 def showSpeakTime(text):
     """计算说话显示时间"""
     return 15 * len(str(text)) + 60
-
-
 def getTimePeriod():
     """获取当前时间段"""
     hour = int(time.strftime("%H"))
@@ -101,8 +104,6 @@ def getTimePeriod():
         return "下午"
     else:
         return "晚上"
-
-
 def moodInit(mood):
     """初始化心情值边界"""
     mood.love = max(mood.love, 1.0)
@@ -126,8 +127,6 @@ def moodInit(mood):
     mood.surprised = min(mood.surprised, 20.0)
     mood.shyness = min(mood.shyness, 20.0)
     mood.tired = min(mood.tired, 150.0)
-
-
 def ActionSetting(mood, action_type=""):
     """处理动作对心情的影响"""
     if action_type == "talk":
@@ -139,7 +138,6 @@ def ActionSetting(mood, action_type=""):
         mood.shyness += 0.0
         mood.interest -= 1.0
         result = "talk"
-    
     elif action_type == "touch":
         mood.surprised += 3.0
         mood.shyness += 3.0
@@ -153,7 +151,6 @@ def ActionSetting(mood, action_type=""):
             mood.happy -= 5.0
             mood.angry += 5.0
             result = "badTouch"
-    
     elif action_type == "break":
         mood.happy += -3.0
         mood.horror += 0.0
@@ -162,7 +159,6 @@ def ActionSetting(mood, action_type=""):
         mood.surprised += 3.0
         mood.shyness += 0.0
         result = "break"
-    
     elif action_type == "positive":
         mood.happy += 5.0
         mood.horror += -3.0
@@ -171,7 +167,6 @@ def ActionSetting(mood, action_type=""):
         mood.surprised += 0.0
         mood.shyness += 1.0
         result = "positive"
-    
     elif action_type == "negative":
         mood.happy += -3.0
         mood.horror += 3.0
@@ -180,7 +175,6 @@ def ActionSetting(mood, action_type=""):
         mood.surprised += 5.0
         mood.shyness += 2.0
         result = "negative"
-    
     elif action_type == "joking":
         mood.happy += 1.0
         mood.horror += -1.0
@@ -189,15 +183,12 @@ def ActionSetting(mood, action_type=""):
         mood.surprised += 5.0
         mood.shyness += 3.0
         result = "joking"
-    
     elif action_type == "disableMoving":
         mood.stopMoving = True
         result = "disableMoving"
-    
     elif action_type == "enableMoving":
         mood.stopMoving = False
         result = "enableMoving"
-    
     else:
         mood.happy += 0.0
         mood.horror += 0.0
@@ -206,11 +197,8 @@ def ActionSetting(mood, action_type=""):
         mood.surprised += 0.0
         mood.shyness += 0.0
         result = action_type
-    
     moodInit(mood)
     return result
-
-
 def emotionSetting(mood):
     """根据心情值确定表情状态"""
     if mood.happy > 10 and (mood.angry + mood.sorrow + mood.horror) < 5 and (mood.hate < mood.love):
@@ -229,30 +217,22 @@ def emotionSetting(mood):
         return "surprised"
     else:
         return "normal"
-
-
 def relationSetting(mood):
     """根据心情值确定关系状态"""
     if mood.familiar < 600:
         if mood.hate > 100:
             return "enemy"
         return "strange"
-    
     if mood.friendship > 100:
         if mood.love > 100:
             return "lover"
         else:
             return "friend"
-    
     if mood.hate > 100:
         return "enemy"
-    
     if mood.fear > 100:
         return "slave"
-    
     return "normal"
-
-
 def moodUpdate(mood):
     """更新心情状态"""
     settingVariable(mood)

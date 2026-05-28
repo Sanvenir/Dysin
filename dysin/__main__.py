@@ -1,5 +1,5 @@
 # -*- coding:utf-8 -*-
-"""Dysin desktop spirit - launch entry."""
+"""Allow running as: python -m dysin"""
 from dysin import main
 import sys
 sys.exit(main())

@@ -1,0 +1,51 @@
+# 角色显示与动作配置
+# 与 Spirit 类和 Dialog 类相关
+
+spirit:
+  # 动画帧图总列数
+  frame_raw_num: 4
+
+  # 站立时对应的动画帧图序列（必须为列表，一个帧也写成 [0]）
+  stand_frame: [0]
+
+  # 行走时对应的动画帧图序列
+  walk_frame: [0, 1, 2, 3]
+
+  # 行走动画播放速度（每一张图片经过的帧数，默认3）
+  anime_walk_speed: 3
+
+  # 行走速度（默认5）
+  pos_walk_speed: 5
+
+  # 说话的概率（标准概率乘以这个数，1.0=始终说话，0.2=偶尔说话）
+  chat_chance: 0.2
+
+  # 改变方向的概率
+  change_direction_chance: 1.0
+
+  # 开始行走的概率
+  move_chance: 1.0
+
+  # 行走过程中停止的概率
+  stop_chance: 1.0
+
+dialog:
+  # 对话框尺寸
+  width: 300
+  height: 100
+
+  # 对话框外边距
+  margin: 50
+
+  # 头像尺寸
+  head_icon_width: 200
+  head_icon_height: 100
+
+  # 字体
+  font_family: 幼圆
+  font_size: 12
+  font_color:
+    r: 200
+    g: 100
+    b: 200
+    a: 255
